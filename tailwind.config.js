@@ -13,6 +13,9 @@ module.exports = {
         spacing: "margin, padding",
       },
     },
+    backgroundImage: {
+      "user-placholder": "url('/public/icons/user-placholder.png')",
+    },
   },
   plugins: [],
 };
