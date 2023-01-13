@@ -5,6 +5,9 @@ import React, { useEffect, useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
 import { saveToken, getToken } from "../services/common";
+import axios from "axios";
+import { httpClient } from "../services/httpClient";
+const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function login() {
   const [username, SetUsername] = useState("");
@@ -13,6 +16,7 @@ export default function login() {
   const [errorPasswordText, SetErrorPasswordText] = useState("");
   const [isLoading, SetIsLoading] = useState(false);
   const [isShowPassword, SetIsShowPassword] = useState(false);
+  const [errLoginResText, setErrLoginResText] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -64,7 +68,13 @@ export default function login() {
     }
   };
 
-  const login = () => {
+  const handleKeyPress = async (event) => {
+    if (event.key === "Enter") {
+      await login();
+    }
+  };
+
+  const login = async () => {
     if (username === "") {
       SetErrorUsernameText("Please Enter Username.");
     }
@@ -76,22 +86,57 @@ export default function login() {
 
     SetIsLoading(true);
 
-    setTimeout(() => {
+    const body = {
+      email: username,
+      password: password,
+    };
+
+    try {
+      let res = await httpClient.post(`${apiUrl}/login`, body);
+      SetIsLoading(false);
+      if (res.resultCode === "20000") {
+        setErrLoginResText("");
+        saveToken(res.resultData.token || "");
+        navigate("/", { replace: true });
+      } else if (res.resultCode === "40102") {
+        setErrLoginResText("User is not verify.");
+      } else if (res.resultCode === "40401") {
+        setErrLoginResText("User not found.");
+      } else if (res.resultCode === "40101") {
+        setErrLoginResText("Wrong Password.");
+      } else {
+        setErrLoginResText("Error occurred,Please try again later.");
+      }
+    } catch (e) {
+      SetIsLoading(false);
+      setErrLoginResText("Error occurred,Please try again later.");
+    }
+
+    /*  const response = await fetch(`https://api.unsplash.com/photos/random?client_id=${process.env.NEXT_PUBLIC_UNSPLASH_API_ACCESS_KEY}`);
+     */
+    /*   setTimeout(() => {
       SetIsLoading(false);
       saveToken("sadasdasdassd");
       navigate("/");
-    }, 1000);
+    }, 1000); */
   };
 
   return (
     <div className="flex w-full h-[100vh] justify-center items-center">
       <div className="overflow-hidden shadow-xl px-4 py-6 rounded-sm">
         <p className="common-header">GALAXTICSTORE DASHBOARD</p>
+
+        {errLoginResText !== "" && (
+          <div className="bg-amber-400 rounded-sm text-white px-2 mt-4 py-1">
+            <p className="text-start">{errLoginResText}</p>
+          </div>
+        )}
+
         <div className="mt-4">
           <label className="block text-gray-700 text-sm font-bold mb-2 text-start" htmlFor="username">
             Username
           </label>
-          <input onBlur={checkEmptyUsername} onChange={handleUsernameChange} value={username} className={"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 " + `${errorUsernameText === "" ? "focus:border-blue-500" : "focus:border-red-700 border-red-700"}`} id="username" type="text" placeholder="Username" />
+          <input onKeyDown={handleKeyPress} onBlur={checkEmptyUsername} onChange={handleUsernameChange} value={username} className={"shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 " + `${errorUsernameText === "" ? "focus:border-blue-500" : "focus:border-red-700 border-red-700"}`} id="username" type="text" placeholder="Username" />
           {errorUsernameText !== "" && <p className="mt-1 text-red-500 text-xs italic text-start">{errorUsernameText}</p>}
         </div>
         <div className="mt-2">
@@ -99,7 +144,7 @@ export default function login() {
             Password
           </label>
           <div className="relative">
-            <input onBlur={checkEmptyPassword} onChange={handlePasswordChange} value={password} className={"pr-10 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 " + `${errorPasswordText === "" ? "focus:border-blue-500" : "focus:border-red-700 border-red-700"}`} id="password" type={`${isShowPassword ? "text" : "password"}`} placeholder="Password" />
+            <input onKeyDown={handleKeyPress} onBlur={checkEmptyPassword} onChange={handlePasswordChange} value={password} className={"pr-10 shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500 " + `${errorPasswordText === "" ? "focus:border-blue-500" : "focus:border-red-700 border-red-700"}`} id="password" type={`${isShowPassword ? "text" : "password"}`} placeholder="Password" />
             <div className="absolute top-0 right-0 h-full">
               <div className="flex justify-center items-center h-full px-2">
                 {!isShowPassword && <EyeIcon onClick={() => SetIsShowPassword(true)} className={"h-6 w-6 cursor-pointer"}></EyeIcon>}

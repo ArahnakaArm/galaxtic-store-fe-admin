@@ -42,7 +42,7 @@ export default function TopBar(props) {
   const logout = () => {
     setIsOpenUserMenu(false);
     localStorage.removeItem("token");
-    navigate("/login");
+    navigate("/login", { replace: true });
   };
 
   return (
