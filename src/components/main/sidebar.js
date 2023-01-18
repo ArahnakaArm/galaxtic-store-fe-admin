@@ -120,10 +120,12 @@ export default function Sidebar(props) {
                     menu.subMenus.map((subMenu, subMenuIndex) => (
                       <div key={subMenuIndex}>
                         {subMenu.child.length === 0 && (
-                          <div className="flex px-2 py-1 text-white cursor-pointer hover:text-blue-500  transition-all duration-300">
-                            <subMenu.icon className="h-6 w-6 mr-1"></subMenu.icon>
-                            <p className="mb-0 text-lg">{subMenu.title}</p>
-                          </div>
+                          <Link to={subMenu.url}>
+                            <div className="flex px-2 py-1 text-white cursor-pointer hover:text-blue-500  transition-all duration-300">
+                              <subMenu.icon className="h-6 w-6 mr-1"></subMenu.icon>
+                              <p className="mb-0 text-lg">{subMenu.title}</p>
+                            </div>
+                          </Link>
                         )}
                         {subMenu.child.length !== 0 && (
                           <div className={"transition-all duration-500 overflow-hidden px-2 py-1 cursor-pointer  " + (isOpens[subMenuIndex] ? "max-h-[20rem]" : "max-h-[38px]")}>

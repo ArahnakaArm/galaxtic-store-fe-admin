@@ -1,22 +1,25 @@
 /* eslint-disable no-useless-concat */
 /* eslint-disable no-useless-escape */
 /* eslint-disable react-hooks/rules-of-hooks */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/solid";
 import { useNavigate } from "react-router-dom";
-import { saveToken, getToken } from "../services/common";
+import { saveToken, saveProfile } from "../services/common";
 import axios from "axios";
 import { httpClient } from "../services/httpClient";
+import ProfileContext from "../contexts/ProfileContext";
+
 const apiUrl = process.env.REACT_APP_API_URL;
 
 export default function login() {
-  const [username, SetUsername] = useState("");
+  const [username, SetUsername] = useState("test3@gmail.com");
   const [errorUsernameText, SetErrorUsernameText] = useState("");
-  const [password, SetPassword] = useState("");
+  const [password, SetPassword] = useState("aA12345678-");
   const [errorPasswordText, SetErrorPasswordText] = useState("");
   const [isLoading, SetIsLoading] = useState(false);
   const [isShowPassword, SetIsShowPassword] = useState(false);
   const [errLoginResText, setErrLoginResText] = useState("");
+  const { changeProfileInfo } = useContext(ProfileContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -86,23 +89,34 @@ export default function login() {
 
     SetIsLoading(true);
 
-    const body = {
-      email: username,
-      password: password,
-    };
-
     try {
-      let res = await httpClient.post(`${apiUrl}/login`, body);
+      let res = await httpClient.post(`${apiUrl}`, {
+        query: `mutation {
+        login(email: "${username}", password: "${password}") {
+          token
+          user {
+            user_id
+            first_name
+            last_name
+          }
+        }
+      }`,
+      });
+
       SetIsLoading(false);
-      if (res.resultCode === "20000") {
+
+      if (res.status === 200) {
+        const loginData = res?.data?.data?.login;
         setErrLoginResText("");
-        saveToken(res.resultData.token || "");
+        saveToken(loginData.token || "");
+        saveProfile(loginData.user.first_name || "", loginData.user.last_name || "");
+        changeProfileInfo({ firstname: loginData.user.first_name, lastname: loginData.user.last_name, imgUrl: null });
         navigate("/", { replace: true });
-      } else if (res.resultCode === "40102") {
+      } /*  else if (res.status === 401) {
         setErrLoginResText("User is not verify.");
-      } else if (res.resultCode === "40401") {
+      } */ else if (res.status === 404) {
         setErrLoginResText("User not found.");
-      } else if (res.resultCode === "40101") {
+      } else if (res.status === 401) {
         setErrLoginResText("Wrong Password.");
       } else {
         setErrLoginResText("Error occurred,Please try again later.");

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/home";
 import Profile from "./pages/profile";
 import Login from "./pages/login";
+import Category from "./pages/category";
 
 import { ProfileProvider } from "./contexts/ProfileContext";
 
@@ -66,6 +67,7 @@ function App() {
               }
             />
             <Route exact path="profile" element={<Profile />} />
+            <Route exact path="category" element={<Category />} />
           </Routes>
         </BrowserRouter>
       </ProfileProvider>

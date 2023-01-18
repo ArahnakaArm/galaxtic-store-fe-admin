@@ -8,7 +8,7 @@ const MENUS = [
         icon: () => {
           return <Squares2X2Icon className="h-6 w-6 mr-1"></Squares2X2Icon>;
         },
-        url: "",
+        url: "category",
         child: [],
       },
       {
